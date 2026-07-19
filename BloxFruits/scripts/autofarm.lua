@@ -310,8 +310,22 @@ local QuestManager = {
 }
 
 function QuestManager:Initialize()
-    local questsModule = ReplicatedStorage:WaitForChild("Quests")
-    local guideModule = require(ReplicatedStorage:WaitForChild("GuideModule"))
+    local questsModule = ReplicatedStorage:WaitForChild("Quests", 9)
+    local guideModule
+    
+    pcall(function()
+        guideModule = require(ReplicatedStorage:WaitForChild("GuideModule", 9))
+    end)
+
+    local tbl_quests = {}
+    if questsModule then
+        if questsModule:IsA("ModuleScript") then
+            pcall(function() tbl_quests = require(questsModule) end)
+        else
+            -- Se não for um ModuleScript, tenta ler como uma tabela se o ambiente permitir
+            pcall(function() tbl_quests = shared.Quests or {} end)
+        end
+    end
 
     local function registerQuestTask(taskData)
         local enemyNames = {}
@@ -324,7 +338,7 @@ function QuestManager:Initialize()
         return enemyNames
     end
 
-    for questName, questData in pairs(require(questsModule)) do
+    for questName, questData in pairs(tbl_quests) do
         if typeof(questData) == "table" and questData.Task then
             for questIndex, taskData in pairs(questData.Task) do
                 local enemyNames = registerQuestTask(taskData)
