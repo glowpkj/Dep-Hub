@@ -1,6 +1,4 @@
-if not game:IsLoaded() then
-    game.Loaded:Wait()
-end
+if not game:IsLoaded() then game.Loaded:Wait() end
 
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
@@ -11,31 +9,23 @@ local SoundService = game:GetService("SoundService")
 local LocalPlayer = Players.LocalPlayer or Players.PlayerAdded:Wait()
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
--- Função para tocar áudios com limpeza automática
 local function playAudio(soundId)
-    task.spawn(function()
-        local sound = Instance.new("Sound")
-        sound.SoundId = "rbxassetid://" .. tostring(soundId)
-        sound.Volume = 1
-        sound.Parent = SoundService
-        sound:Play()
-        sound.Ended:Connect(function()
-            sound:Destroy()
-        end)
+    local sound = Instance.new("Sound")
+    sound.SoundId = "rbxassetid://" .. tostring(soundId)
+    sound.Volume = 1
+    sound.Looped = false
+    sound.Parent = SoundService
+    sound:Play()
+    
+    sound.Ended:Connect(function()
+        sound:Destroy()
     end)
 end
 
--- Toca o som "DepHub" após 1 segundo da execução do Loader
-task.spawn(function()
-    task.wait(1)
-    playAudio("123699567415290")
-end)
+playAudio(123699567415290)
 
 local GAMES_DATABASE = {
-    [142823291] = { 
-        Name = "Murder Mystery 2", 
-        ScriptUrl = "https://raw.githubusercontent.com/glowpkj/Dep-Hub/refs/heads/main/g/mm2.lua" 
-    }
+    [142823291] = { Name = "Murder Mystery 2", ScriptUrl = "https://raw.githubusercontent.com/glowpkj/Dep-Hub/refs/heads/main/g/mm2.lua" }
 }
 
 local function getScreenParent()
@@ -74,7 +64,7 @@ if not currentGameData then
     warningFrame.BackgroundColor3 = Color3.fromRGB(18, 18, 22)
     warningFrame.BorderSizePixel = 0
     warningFrame.Parent = warningGui
-
+    
     createCorner(warningFrame, 8)
     createStroke(warningFrame, Color3.fromRGB(220, 80, 80), 1)
 
@@ -157,15 +147,12 @@ local function tweenBar(scale, duration)
 end
 
 repeat task.wait() until game:IsLoaded()
-if not LocalPlayer.Character then
-    LocalPlayer.CharacterAdded:Wait()
-end
+if not LocalPlayer.Character then LocalPlayer.CharacterAdded:Wait() end
 
 tweenBar(0.25, 0.3)
-
 loadingStatus.Text = "Identifying: " .. currentGameData.Name .. "..."
-tweenBar(0.5, 0.3)
 
+tweenBar(0.5, 0.3)
 loadingStatus.Text = "Downloading script..."
 
 local fetchSuccess, rawSource = pcall(function()
@@ -206,10 +193,9 @@ if not compileSuccess or type(compiledFunc) ~= "function" then
 end
 
 loadingStatus.Text = "Executing script..."
-tweenBar(0.9, 0.2)
+tweenBar(0.85, 0.2)
 
 local runSuccess, runErr = pcall(compiledFunc)
-
 if not runSuccess then
     loadingStatus.TextColor3 = Color3.fromRGB(240, 80, 80)
     progressBar.BackgroundColor3 = Color3.fromRGB(240, 80, 80)
@@ -219,17 +205,23 @@ if not runSuccess then
     return
 end
 
+_G.MM2_Loaded = false
+local timeout = 0
+loadingStatus.Text = "Syncing MM2 modules..."
+
+repeat
+    task.wait(0.2)
+    timeout = timeout + 0.2
+until _G.MM2_Loaded or timeout > 10
+
 loadingStatus.Text = "Successfully loaded!"
 tweenBar(1, 0.2)
 task.wait(0.2)
 
-local exitTween = TweenService:Create(
-    loadingFrame, 
-    TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.In), 
-    { Position = UDim2.new(0.5, -190, 1.2, 0) }
-)
+local exitTween = TweenService:Create(loadingFrame, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.In), { Position = UDim2.new(0.5, -190, 1.2, 0) })
 exitTween:Play()
 exitTween.Completed:Wait()
+
 loadingGui:Destroy()
 
 StarterGui:SetCore("SendNotification", {
