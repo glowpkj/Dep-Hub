@@ -1,21 +1,14 @@
-pcall(function() if rconsoleclear then rconsoleclear() end end)
-pcall(function() if rconsolename then rconsolename("Dep Hub") end end)
-pcall(function() if cleardata then cleardata() end end)
-pcall(function() if console and console.clear then console.clear() end end)
-print("[Dep Hub] Executed successfully.")
-
 if not game:IsLoaded() then game.Loaded:Wait() end
 
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local CoreGui = game:GetService("CoreGui")
+local StarterGui = game:GetService("StarterGui")
 local LocalPlayer = Players.LocalPlayer
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
 local GAMES_DATABASE = {
-    [2753915549] = { Name = "Blox Fruits (Sea 1)", ScriptUrl = "https://githubusercontent.com" },
-    [4442272121] = { Name = "Blox Fruits (Sea 2)", ScriptUrl = "https://githubusercontent.com" },
-    [7405815058] = { Name = "Blox Fruits (Sea 3)", ScriptUrl = "https://githubusercontent.com" }
+    [142823291] = { Name = "Murder Mystery 2", ScriptUrl = "https://githubusercontent.com" }
 }
 
 _G.DepHub = _G.DepHub or {}
@@ -37,23 +30,16 @@ local function getScreenParent()
     return ok and CoreGui or PlayerGui
 end
 
-local function loadRemoteScript(url, label)
+local function loadRemoteScript(url)
     local ok, source = pcall(function() return game:HttpGet(url) end)
-    if not ok or not source or #source == 0 then
-        warn("[Dep Hub] Download failed: " .. label)
-        return false
-    end
+    if not ok or not source or #source == 0 then return false end
+    
     local compileOk, compiled = pcall(function() return loadstring(source) end)
-    if not compileOk or not compiled then
-        warn("[Dep Hub] Compile failed: " .. label)
-        return false
-    end
+    if not compileOk or not compiled then return false end
+    
     local runOk, runErr = pcall(compiled)
-    if not runOk then
-        warn("[Dep Hub] Runtime error (" .. label .. "): " .. tostring(runErr))
-        return false
-    end
-    print("[Dep Hub] " .. label .. " loaded.")
+    if not runOk then return false end
+    
     return true
 end
 
@@ -116,7 +102,7 @@ local loadingStatus = Instance.new("TextLabel")
 loadingStatus.Size = UDim2.new(1, -24, 0, 20)
 loadingStatus.Position = UDim2.new(0, 12, 0, 68)
 loadingStatus.BackgroundTransparency = 1
-loadingStatus.Text = "Initializing..."
+loadingStatus.Text = "Checking environment..."
 loadingStatus.TextColor3 = Color3.fromRGB(160, 160, 160)
 loadingStatus.Font = Enum.Font.Gotham
 loadingStatus.TextSize = 11
@@ -136,33 +122,40 @@ progressBar.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 progressBar.BorderSizePixel = 0
 progressBar.Parent = progressBackground
 
-local loadingSteps = {
-    { text = "Checking environment...", progress = 0.2, delay = 0.25 },
-    { text = "Identifying: " .. currentGameData.Nome .. "...", progress = 0.5, delay = 0.35 },
-    { text = "Downloading latest scripts...", progress = 0.8, delay = 0.4 },
-    { text = "Ready to inject!", progress = 1, delay = 0.2 },
-}
+local tween1 = TweenService:Create(progressBar, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Size = UDim2.new(0.3, 0, 1, 0) })
+tween1:Play()
+tween1.Completed:Wait()
 
-for _, step in ipairs(loadingSteps) do
-    loadingStatus.Text = step.text
-    local progressTween = TweenService:Create(
-        progressBar,
-        TweenInfo.new(step.delay, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-        { Size = UDim2.new(step.progress, 0, 1, 0) }
-    )
-    progressTween:Play()
-    progressTween.Completed:Wait()
+loadingStatus.Text = "Identifying: " .. currentGameData.Name .. "..."
+local tween2 = TweenService:Create(progressBar, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Size = UDim2.new(0.6, 0, 1, 0) })
+tween2:Play()
+tween2.Completed:Wait()
+
+loadingStatus.Text = "Downloading script..."
+local scriptLoaded = loadRemoteScript(currentGameData.ScriptUrl)
+
+if scriptLoaded then
+    loadingStatus.Text = "Ready to inject!"
+    local tween3 = TweenService:Create(progressBar, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Size = UDim2.new(1, 0, 1, 0) })
+    tween3:Play()
+    tween3.Completed:Wait()
+    
+    task.wait(0.15)
+    
+    local exitTween = TweenService:Create(loadingFrame, TweenInfo.new(0.45, Enum.EasingStyle.Quart, Enum.EasingDirection.In), { Position = UDim2.new(0.5, -180, 1.2, 0) })
+    exitTween:Play()
+    exitTween.Completed:Wait()
+    loadingGui:Destroy()
+    
+    StarterGui:SetCore("SendNotification", {
+        Title = "Dep Hub",
+        Text = currentGameData.Name .. " loaded successfully!",
+        Duration = 5
+    })
+else
+    loadingStatus.Text = "Connection error. Failed to load."
+    loadingStatus.TextColor3 = Color3.fromRGB(220, 80, 80)
+    progressBar.BackgroundColor3 = Color3.fromRGB(220, 80, 80)
+    task.wait(3)
+    loadingGui:Destroy()
 end
-
-task.wait(0.15)
-
-local exitTween = TweenService:Create(
-    loadingFrame,
-    TweenInfo.new(0.45, Enum.EasingStyle.Quart, Enum.EasingDirection.In),
-    { Position = UDim2.new(0.5, -180, 1.2, 0) }
-)
-exitTween:Play()
-exitTween.Completed:Wait()
-loadingGui:Destroy()
-
-loadRemoteScript(currentGameData.ScriptUrl, currentGameData.Nome)
