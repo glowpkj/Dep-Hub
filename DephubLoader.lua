@@ -11,7 +11,10 @@ local LocalPlayer = Players.LocalPlayer or Players.PlayerAdded:Wait()
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
 local GAMES_DATABASE = {
-    [142823291] = { Name = "Murder Mystery 2", ScriptUrl = "https://githubusercontent.com" }
+    [142823291] = { 
+        Name = "Murder Mystery 2", 
+        ScriptUrl = "https://raw.githubusercontent.com/glowpkj/Dep-Hub/refs/heads/main/g/mm2.lua" 
+    }
 }
 
 local function getScreenParent()
