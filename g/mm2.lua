@@ -2,6 +2,8 @@ if not game:IsLoaded() then
     game.Loaded:Wait()
 end
 
+print("[DepHub] Iniciando o carregamento do script...")
+
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
@@ -10,14 +12,21 @@ local CoreGui = game:GetService("CoreGui")
 local LocalPlayer = Players.LocalPlayer or Players.PlayerAdded:Wait()
 
 local function getScreenParent()
-    local ok = pcall(function() return CoreGui.Name end)
-    return ok and CoreGui or LocalPlayer:WaitForChild("PlayerGui")
+    local ok, res = pcall(function() return CoreGui end)
+    if ok and res then
+        print("[DepHub] Parent definido para: CoreGui")
+        return CoreGui
+    else
+        print("[DepHub] Parent definido para: PlayerGui")
+        return LocalPlayer:WaitForChild("PlayerGui")
+    end
 end
 
 local screenParent = getScreenParent()
 
 local existingUI = screenParent:FindFirstChild("DepHub_UI")
 if existingUI then
+    print("[DepHub] UI antiga encontrada. Removendo...")
     existingUI:Destroy()
 end
 
@@ -204,6 +213,7 @@ function DepHubUI.new(hubTitle, gameName)
 
     local function toggleUI()
         isOpen = not isOpen
+        print("[DepHub] Alternando visibilidade da UI. Aberta:", isOpen)
         if isOpen then
             mainFrame.Visible = true
             TweenService:Create(mainFrame, TweenInfo.new(0.35, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
@@ -235,26 +245,12 @@ function DepHubUI.new(hubTitle, gameName)
     self.Tabs = {}
     self.ActiveTab = nil
 
-    searchBox:GetPropertyChangedSignal("Text"):Connect(function()
-        local query = string.lower(searchBox.Text)
-        if self.ActiveTab then
-            for _, item in ipairs(self.ActiveTab.Elements) do
-                if item.Frame then
-                    if query == "" then
-                        item.Frame.Visible = true
-                    else
-                        local match = string.find(string.lower(item.SearchName), query) ~= nil
-                        item.Frame.Visible = match
-                    end
-                end
-            end
-        end
-    end)
-
+    print("[DepHub] Estrutura da UI criada com sucesso!")
     return self
 end
 
 function DepHubUI:CreateTab(tabName)
+    print("[DepHub] Criando aba:", tabName)
     local tabButton = Instance.new("TextButton")
     tabButton.Size = UDim2.new(1, 0, 0, 30)
     tabButton.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
@@ -358,17 +354,8 @@ function DepHubUI:CreateTab(tabName)
         createCorner(btn, 5)
         local stroke = createStroke(btn, Color3.fromRGB(28, 28, 28), 1)
 
-        btn.MouseEnter:Connect(function()
-            TweenService:Create(btn, TweenInfo.new(0.2), { BackgroundColor3 = Color3.fromRGB(18, 18, 18) }):Play()
-            stroke.Color = Color3.fromRGB(50, 50, 50)
-        end)
-
-        btn.MouseLeave:Connect(function()
-            TweenService:Create(btn, TweenInfo.new(0.2), { BackgroundColor3 = Color3.fromRGB(8, 8, 8) }):Play()
-            stroke.Color = Color3.fromRGB(28, 28, 28)
-        end)
-
         btn.MouseButton1Click:Connect(function()
+            print("[DepHub] Botão clicado:", text)
             pcall(callback)
         end)
 
@@ -385,7 +372,6 @@ function DepHubUI:CreateTab(tabName)
         toggleFrame.Parent = tabContainer
 
         createCorner(toggleFrame, 5)
-        local stroke = createStroke(toggleFrame, Color3.fromRGB(28, 28, 28), 1)
 
         local toggleLabel = Instance.new("TextLabel")
         toggleLabel.Size = UDim2.new(1, -50, 1, 0)
@@ -415,6 +401,7 @@ function DepHubUI:CreateTab(tabName)
 
         clickBtn.MouseButton1Click:Connect(function()
             state = not state
+            print("[DepHub] Toggle alterado:", text, "Estado:", state)
             TweenService:Create(indicator, TweenInfo.new(0.2), {
                 BackgroundColor3 = state and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(25, 25, 25)
             }):Play()
@@ -427,12 +414,20 @@ function DepHubUI:CreateTab(tabName)
     return TabElements
 end
 
+-- Inicialização com mensagens de confirmação
+print("[DepHub] Criando janela principal...")
 local UI = DepHubUI.new("Dep Hub", "Murder Mystery 2")
+
+print("[DepHub] Criando abas e elementos...")
 local MainTab = UI:CreateTab("Main")
 
 MainTab:AddSection("Automation")
-MainTab:AddToggle("Auto Farm", false, function(state)
+MainTab:AddToggle("Auto Farm Test", false, function(state)
+    print("[DepHub] Callback do Auto Farm executado com valor:", state)
 end)
 
-MainTab:AddButton("Teleport to Lobby", function()
+MainTab:AddButton("Teleport Test", function()
+    print("[DepHub] Callback do Teleport executado!")
 end)
+
+print("[DepHub] Script carregado inteiramente com sucesso!")
