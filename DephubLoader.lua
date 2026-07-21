@@ -6,9 +6,30 @@ local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local CoreGui = game:GetService("CoreGui")
 local StarterGui = game:GetService("StarterGui")
+local SoundService = game:GetService("SoundService")
 
 local LocalPlayer = Players.LocalPlayer or Players.PlayerAdded:Wait()
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+
+-- Função para tocar áudios com limpeza automática
+local function playAudio(soundId)
+    task.spawn(function()
+        local sound = Instance.new("Sound")
+        sound.SoundId = "rbxassetid://" .. tostring(soundId)
+        sound.Volume = 1
+        sound.Parent = SoundService
+        sound:Play()
+        sound.Ended:Connect(function()
+            sound:Destroy()
+        end)
+    end)
+end
+
+-- Toca o som "DepHub" após 1 segundo da execução do Loader
+task.spawn(function()
+    task.wait(1)
+    playAudio("123699567415290")
+end)
 
 local GAMES_DATABASE = {
     [142823291] = { 
