@@ -427,4 +427,12 @@ function DepHubUI:CreateTab(tabName)
     return TabElements
 end
 
-return DepHubUI
+local UI = DepHubUI.new("Dep Hub", "Murder Mystery 2")
+local MainTab = UI:CreateTab("Main")
+
+MainTab:AddSection("Automation")
+MainTab:AddToggle("Auto Farm", false, function(state)
+end)
+
+MainTab:AddButton("Teleport to Lobby", function()
+end)
